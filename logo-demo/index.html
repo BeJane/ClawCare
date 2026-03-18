@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>无障碍知识库 - Logo 展示</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 14px;
+      color: #888;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ===== LOGO VARIANTS ===== */
+    .variants {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      min-width: 200px;
+    }
+
+    .card.dark {
+      background: #1a1a2e;
+    }
+
+    .card-label {
+      font-size: 12px;
+      color: #aaa;
+      letter-spacing: 1px;
+    }
+
+    .card.dark .card-label {
+      color: #666;
+    }
+
+    /* ===== NAVBAR PREVIEW ===== */
+    .navbar-preview {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      height: 60px;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .navbar-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .navbar-name span {
+      color: #4f8ef7;
+    }
+
+    .navbar-links {
+      margin-left: auto;
+      display: flex;
+      gap: 24px;
+    }
+
+    .navbar-links a {
+      font-size: 14px;
+      color: #666;
+      text-decoration: none;
+    }
+
+    .navbar-links a:hover {
+      color: #4f8ef7;
+    }
+
+    .page-content {
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .page-sub {
+      font-size: 14px;
+      color: #888;
+      line-height: 1.6;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .tag {
+      background: #eef3ff;
+      color: #4f8ef7;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>无障碍知识库 · Logo 设计</h1>
+
+  <div class="variants">
+
+    <!-- 浅色版 -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 外圆 -->
+        <circle cx="40" cy="40" r="38" fill="#eef3ff" stroke="#4f8ef7" stroke-width="2"/>
+        <!-- 书本 -->
+        <rect x="22" y="28" width="16" height="24" rx="2" fill="#4f8ef7" opacity="0.3"/>
+        <rect x="24" y="26" width="16" height="24" rx="2" fill="#4f8ef7"/>
+        <!-- 书脊线 -->
+        <line x1="24" y1="30" x2="40" y2="30" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <line x1="24" y1="34" x2="40" y2="34" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <line x1="24" y1="38" x2="38" y2="38" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <!-- 无障碍轮椅人形 -->
+        <circle cx="52" cy="30" r="4" fill="#2dd4bf"/>
+        <!-- 身体 -->
+        <path d="M52 35 L50 43 L55 43" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <!-- 轮椅轮子 -->
+        <circle cx="53" cy="48" r="4" stroke="#2dd4bf" stroke-width="2" fill="none"/>
+        <!-- 手臂 -->
+        <path d="M52 37 L57 40" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+        <!-- 连接线 -->
+        <path d="M40 40 Q46 40 48 38" stroke="#4f8ef7" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.5"/>
+      </svg>
+      <div class="card-label">浅色 · 标准</div>
+    </div>
+
+    <!-- 深色版 -->
+    <div class="card dark">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="38" fill="#1e2a4a" stroke="#4f8ef7" stroke-width="2"/>
+        <rect x="22" y="28" width="16" height="24" rx="2" fill="#4f8ef7" opacity="0.3"/>
+        <rect x="24" y="26" width="16" height="24" rx="2" fill="#4f8ef7"/>
+        <line x1="24" y1="30" x2="40" y2="30" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <line x1="24" y1="34" x2="40" y2="34" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <line x1="24" y1="38" x2="38" y2="38" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="52" cy="30" r="4" fill="#2dd4bf"/>
+        <path d="M52 35 L50 43 L55 43" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="53" cy="48" r="4" stroke="#2dd4bf" stroke-width="2" fill="none"/>
+        <path d="M52 37 L57 40" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+        <path d="M40 40 Q46 40 48 38" stroke="#4f8ef7" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.5"/>
+      </svg>
+      <div class="card-label">深色 · 夜间</div>
+    </div>
+
+    <!-- 纯图标小尺寸 -->
+    <div class="card">
+      <div style="display:flex; gap:16px; align-items:center;">
+        <svg width="32" height="32" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="38" fill="#eef3ff" stroke="#4f8ef7" stroke-width="2"/>
+          <rect x="22" y="28" width="16" height="24" rx="2" fill="#4f8ef7" opacity="0.3"/>
+          <rect x="24" y="26" width="16" height="24" rx="2" fill="#4f8ef7"/>
+          <line x1="24" y1="30" x2="40" y2="30" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="34" x2="40" y2="34" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="38" x2="38" y2="38" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="52" cy="30" r="4" fill="#2dd4bf"/>
+          <path d="M52 35 L50 43 L55 43" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="53" cy="48" r="4" stroke="#2dd4bf" stroke-width="2" fill="none"/>
+          <path d="M52 37 L57 40" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg width="48" height="48" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="38" fill="#eef3ff" stroke="#4f8ef7" stroke-width="2"/>
+          <rect x="22" y="28" width="16" height="24" rx="2" fill="#4f8ef7" opacity="0.3"/>
+          <rect x="24" y="26" width="16" height="24" rx="2" fill="#4f8ef7"/>
+          <line x1="24" y1="30" x2="40" y2="30" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="34" x2="40" y2="34" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="38" x2="38" y2="38" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="52" cy="30" r="4" fill="#2dd4bf"/>
+          <path d="M52 35 L50 43 L55 43" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="53" cy="48" r="4" stroke="#2dd4bf" stroke-width="2" fill="none"/>
+          <path d="M52 37 L57 40" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg width="64" height="64" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="38" fill="#eef3ff" stroke="#4f8ef7" stroke-width="2"/>
+          <rect x="22" y="28" width="16" height="24" rx="2" fill="#4f8ef7" opacity="0.3"/>
+          <rect x="24" y="26" width="16" height="24" rx="2" fill="#4f8ef7"/>
+          <line x1="24" y1="30" x2="40" y2="30" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="34" x2="40" y2="34" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="38" x2="38" y2="38" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="52" cy="30" r="4" fill="#2dd4bf"/>
+          <path d="M52 35 L50 43 L55 43" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="53" cy="48" r="4" stroke="#2dd4bf" stroke-width="2" fill="none"/>
+          <path d="M52 37 L57 40" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-label">多尺寸适配</div>
+    </div>
+
+  </div>
+
+  <!-- 导航栏预览 -->
+  <div class="navbar-preview">
+    <nav class="navbar">
+      <a class="navbar-brand" href="#">
+        <svg width="36" height="36" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="38" fill="#eef3ff" stroke="#4f8ef7" stroke-width="2"/>
+          <rect x="22" y="28" width="16" height="24" rx="2" fill="#4f8ef7" opacity="0.3"/>
+          <rect x="24" y="26" width="16" height="24" rx="2" fill="#4f8ef7"/>
+          <line x1="24" y1="30" x2="40" y2="30" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="34" x2="40" y2="34" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <line x1="24" y1="38" x2="38" y2="38" stroke="white" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="52" cy="30" r="4" fill="#2dd4bf"/>
+          <path d="M52 35 L50 43 L55 43" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="53" cy="48" r="4" stroke="#2dd4bf" stroke-width="2" fill="none"/>
+          <path d="M52 37 L57 40" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="navbar-name">无障碍<span>知识库</span></span>
+      </a>
+      <div class="navbar-links">
+        <a href="#">政策法规</a>
+        <a href="#">补贴指南</a>
+        <a href="#">出行资源</a>
+        <a href="#">关于我们</a>
+      </div>
+    </nav>
+    <div class="page-content">
+      <div class="page-title">残障权益知识库</div>
+      <div class="page-sub">汇聚残疾人补贴政策、无障碍出行指南、残障权益资讯，让每一位用户都能便捷获取所需信息。</div>
+      <div class="tag-row">
+        <span class="tag">残疾人补贴</span>
+        <span class="tag">无障碍出行</span>
+        <span class="tag">残障权益</span>
+        <span class="tag">政策解读</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

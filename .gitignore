@@ -1,0 +1,8 @@
+.env
+*.log
+*.bak
+__pycache__/
+*.pyc
+.idea/
+.claude/
+node_modules/

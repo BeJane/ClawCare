@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>无障碍知识库 · AI 问答</title>
+  <style>
+    /* ── 基础变量 ── */
+    :root {
+      --bg: #f5f5f0;
+      --surface: #ffffff;
+      --primary: #1a5c9a;
+      --primary-dark: #0f3d6b;
+      --text: #1a1a1a;
+      --text-muted: #555;
+      --border: #c8c8c8;
+      --user-bubble: #1a5c9a;
+      --ai-bubble: #eef4fb;
+      --ai-text: #1a1a1a;
+      --radius: 12px;
+      --font: "Lexend", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .high-contrast {
+      --bg: #000;
+      --surface: #111;
+      --primary: #ffff00;
+      --primary-dark: #cccc00;
+      --text: #ffffff;
+      --text-muted: #cccccc;
+      --border: #ffffff;
+      --user-bubble: #ffff00;
+      --ai-bubble: #222;
+      --ai-text: #ffffff;
+    }
+
+    /* ── 重置 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    html.font-sm { font-size: 13px; }
+    html.font-lg { font-size: 20px; }
+    html.font-xl { font-size: 24px; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      font-size: 1.1rem;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── 跳转链接（无障碍） ── */
+    .skip-link {
+      position: absolute;
+      top: -999px;
+      left: 8px;
+      background: var(--primary);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      z-index: 999;
+    }
+    .skip-link:focus { top: 8px; }
+
+    /* ── 顶栏 ── */
+    header {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .high-contrast header { color: #000; }
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+
+    .toolbar { display: flex; gap: 8px; }
+    .toolbar button {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.6);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: var(--font);
+      min-width: 44px; min-height: 44px;
+      transition: background 0.15s;
+    }
+    .high-contrast .toolbar button { color: #000; border-color: #000; }
+    .toolbar button:hover, .toolbar button:focus {
+      background: rgba(255,255,255,0.35);
+      outline: 3px solid #fff;
+      outline-offset: 2px;
+    }
+
+    /* ── 主体 ── */
+    main {
+      width: 100%;
+      max-width: 800px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px;
+    }
+
+    /* ── 消息列表 ── */
+    #chat-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+      gap: 4px;
+    }
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.ai   { align-self: flex-start; align-items: flex-start; }
+
+    .msg-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bubble {
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      line-height: 1.7;
+      word-break: break-word;
+    }
+    .msg.user .bubble {
+      background: var(--user-bubble);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .high-contrast .msg.user .bubble { color: #000; }
+    .msg.ai .bubble {
+      background: var(--ai-bubble);
+      color: var(--ai-text);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* 流式光标 */
+    .cursor::after {
+      content: "▋";
+      animation: blink 0.8s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── 欢迎卡片 ── */
+    #welcome {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 8px;
+    }
+    #welcome h2 { font-size: 1.1rem; margin-bottom: 12px; color: var(--primary); }
+    .quick-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .quick-btn {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: var(--font);
+      min-height: 44px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .quick-btn:hover, .quick-btn:focus {
+      background: var(--primary);
+      color: #fff;
+      outline: 3px solid var(--primary-dark);
+      outline-offset: 2px;
+    }
+    .high-contrast .quick-btn:hover,
+    .high-contrast .quick-btn:focus { color: #000; }
+
+    /* ── 输入区 ── */
+    #input-area {
+      padding: 12px 0 20px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    #user-input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-family: var(--font);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      resize: none;
+      min-height: 52px;
+      max-height: 160px;
+      line-height: 1.5;
+      transition: border-color 0.15s;
+    }
+    #user-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26,92,154,0.2);
+    }
+    #send-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0 20px;
+      height: 52px;
+      font-size: 1rem;
+      font-family: var(--font);
+      font-weight: 600;
+      cursor: pointer;
+      min-width: 80px;
+      transition: background 0.15s;
+    }
+    .high-contrast #send-btn { color: #000; }
+    #send-btn:hover, #send-btn:focus {
+      background: var(--primary-dark);
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+    #send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ── 朗读按钮 ── */
+    .speak-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      margin-top: 4px;
+      min-height: 32px;
+    }
+    .speak-btn:hover, .speak-btn:focus {
+      border-color: var(--primary);
+      color: var(--primary);
+      outline: 2px solid var(--primary);
+    }
+
+    /* ── 字体大小（作用于 html 根元素，rem 单位全局生效）── */
+
+    /* ── 状态提示 ── */
+    #status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 0 4px 4px;
+      min-height: 20px;
+    }
+
+    /* ── Markdown 渲染样式 ── */
+    .bubble h1, .bubble h2, .bubble h3 {
+      margin: 12px 0 6px;
+      line-height: 1.4;
+    }
+    .bubble h1 { font-size: 1.2em; }
+    .bubble h2 { font-size: 1.1em; }
+    .bubble h3 { font-size: 1em; }
+    .bubble p { margin: 6px 0; }
+    .bubble ul, .bubble ol {
+      margin: 6px 0 6px 20px;
+      padding: 0;
+    }
+    .bubble li { margin: 4px 0; }
+    .bubble strong { font-weight: 700; }
+    .bubble em { font-style: italic; }
+    .bubble code {
+      background: rgba(0,0,0,0.07);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: "Consolas", monospace;
+      font-size: 0.9em;
+    }
+    .bubble pre {
+      background: rgba(0,0,0,0.07);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    .bubble pre code { background: none; padding: 0; }
+    .bubble blockquote {
+      border-left: 4px solid var(--primary);
+      margin: 8px 0;
+      padding: 4px 12px;
+      color: var(--text-muted);
+    }
+    .bubble hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+    }
+    .bubble a { color: var(--primary); text-decoration: underline; }
+    .bubble table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 8px 0;
+      font-size: 0.9em;
+    }
+    .bubble th, .bubble td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .bubble th { background: rgba(0,0,0,0.05); font-weight: 700; }
+    /* 用户气泡里的 Markdown（白色文字） */
+    .msg.user .bubble code { background: rgba(255,255,255,0.2); }
+    .msg.user .bubble pre  { background: rgba(255,255,255,0.15); }
+    .msg.user .bubble blockquote { border-color: rgba(255,255,255,0.6); color: rgba(255,255,255,0.8); }
+    .msg.user .bubble a { color: #cce4ff; }
+  </style>
+</head>
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+
+<a href="#user-input" class="skip-link">跳转到输入框</a>
+
+<header role="banner">
+  <h1>♿ 无障碍知识库 · AI 问答</h1>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span id="visit-stats" style="font-size:0.75rem;color:#fff;white-space:nowrap;"></span>
+    <div class="toolbar" role="toolbar" aria-label="辅助功能工具栏">
+    <button id="btn-font" onclick="cycleFont()" title="调整字体大小" aria-label="调整字体大小">字A</button>
+    <button id="btn-contrast" onclick="toggleContrast()" title="高对比度模式" aria-label="切换高对比度">对比</button>
+    <button id="btn-speak-toggle" onclick="toggleAutoSpeak()" title="自动朗读回复" aria-label="切换自动朗读" aria-pressed="false">🔇 朗读</button>
+    <button id="btn-clear" onclick="clearHistory()" title="清空对话" aria-label="清空对话记录">🗑 清空</button>
+    <button id="btn-about" onclick="toggleAbout()" title="关于本站" aria-label="关于本站">ℹ 关于</button>
+    <button id="btn-kb" onclick="toggleKBPanel()" title="查看知识库" aria-label="打开知识库面板">📚 知识库</button>
+  </div>
+  </div>
+</header>
+
+<!-- 关于弹窗 -->
+<div id="about-modal" role="dialog" aria-modal="true" aria-label="关于本站" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:200; display:none; align-items:center; justify-content:center; padding:16px;
+">
+  <div style="background:var(--surface);border-radius:var(--radius);max-width:520px;width:100%;padding:28px;position:relative;max-height:90vh;overflow-y:auto;">
+    <button onclick="toggleAbout()" aria-label="关闭" style="
+      position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);
+      border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--text);font-family:var(--font);
+    ">✕</button>
+    <h2 style="font-size:1.1rem;color:var(--primary);margin-bottom:16px;">♿ 关于无障碍知识库</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.7;margin-bottom:16px;">
+      这是一个专注无障碍出行与生活的 AI 问答平台，帮助有需要的人快速获取出行、政策、辅具、就业等实用信息。
+    </p>
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:0.9rem;">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:1.2rem;flex-shrink:0;">📚</span>
+        <div><strong style="color:var(--primary);">权威来源</strong><br><span style="color:var(--text-muted);">知识库内容来自 WHO、国务院、人社部、中国残联等官方渠道，每条附原文链接，信息可溯源核实。</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:1.2rem;flex-shrink:0;">🤖</span>
+        <div><strong style="color:var(--primary);">持续成长</strong><br><span style="color:var(--text-muted);">每次有价值的问答会由 AI 自动提炼并入库，知识库随使用不断积累，越用越准确。</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:1.2rem;flex-shrink:0;">🔊</span>
+        <div><strong style="color:var(--primary);">无障碍优先</strong><br><span style="color:var(--text-muted);">支持语音朗读、高对比度模式、三档字体调节，键盘可完整操作，符合无障碍设计规范。</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:1.2rem;flex-shrink:0;">⚡</span>
+        <div><strong style="color:var(--primary);">流式实时回复</strong><br><span style="color:var(--text-muted);">AI 回答逐字流式输出，无需等待，响应更流畅自然。</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 访问量地图弹窗 -->
+<div id="map-modal" role="dialog" aria-modal="true" aria-label="访问量地图" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+  z-index:200; align-items:center; justify-content:center; padding:16px;
+">
+  <div style="background:var(--surface);border-radius:var(--radius);width:100%;max-width:860px;padding:20px;position:relative;">
+    <button onclick="toggleMapModal()" aria-label="关闭" style="
+      position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);
+      border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--text);font-family:var(--font);
+    ">✕</button>
+    <h2 style="font-size:1rem;color:var(--primary);margin-bottom:12px;">🌍 访客来源地图</h2>
+    <div id="map-chart" style="width:100%;height:420px;"></div>
+  </div>
+</div>
+
+<!-- 知识库侧边面板 -->
+<div id="kb-panel" role="dialog" aria-modal="true" aria-label="知识库" style="
+  display:none; position:fixed; top:0; right:0; width:360px; max-width:100vw;
+  height:100vh; background:var(--surface); border-left:2px solid var(--border);
+  z-index:100; overflow-y:auto; padding:20px; box-shadow:-4px 0 16px rgba(0,0,0,0.15);
+">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h2 style="font-size:1rem;color:var(--primary);">📚 知识库条目</h2>
+    <div style="display:flex;gap:8px;">
+      <button onclick="loadKB()" aria-label="刷新知识库" style="
+        background:none;border:1px solid var(--border);border-radius:6px;
+        padding:4px 10px;cursor:pointer;color:var(--text);font-family:var(--font);
+      ">🔄 刷新</button>
+      <button onclick="toggleKBPanel()" aria-label="关闭知识库面板" style="
+        background:none;border:1px solid var(--border);border-radius:6px;
+        padding:4px 10px;cursor:pointer;color:var(--text);font-family:var(--font);
+      ">✕ 关闭</button>
+    </div>
+  </div>
+  <input id="kb-search" type="search" placeholder="搜索知识库…" aria-label="搜索知识库"
+    oninput="filterKB(this.value)"
+    style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:8px;
+    font-size:0.9rem;font-family:var(--font);background:var(--bg);color:var(--text);margin-bottom:12px;">
+  <div id="kb-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
+<main role="main">
+  <div id="chat-log" role="log" aria-live="polite" aria-label="对话记录">
+    <div id="welcome" role="region" aria-label="欢迎信息">
+      <h2>你好，有什么可以帮你？</h2>
+      <p style="color:var(--text-muted);font-size:0.9rem;">可以问我出行攻略、辅助工具、政策补贴、就业资源等问题。</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px;">
+        <div style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:0.85rem;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">📚</div>
+          <strong style="color:var(--primary);">权威知识库</strong>
+          <p style="color:var(--text-muted);margin-top:4px;">内容来自 WHO、国务院、人社部等官方来源，每条均附原文链接可溯源。</p>
+        </div>
+        <div style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:0.85rem;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">🤖</div>
+          <strong style="color:var(--primary);">越用越聪明</strong>
+          <p style="color:var(--text-muted);margin-top:4px;">每次有价值的问答会自动提炼入库，知识库持续积累成长。</p>
+        </div>
+        <div style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:0.85rem;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">♿</div>
+          <strong style="color:var(--primary);">无障碍设计</strong>
+          <p style="color:var(--text-muted);margin-top:4px;">支持朗读、高对比度、大字体，键盘可完整操作。</p>
+        </div>
+      </div>
+      <div class="quick-btns" role="group" aria-label="快捷问题">
+        <button class="quick-btn" onclick="sendQuick(this)">轮椅用户出行注意事项</button>
+        <button class="quick-btn" onclick="sendQuick(this)">视障人士手机辅助功能怎么开</button>
+        <button class="quick-btn" onclick="sendQuick(this)">残疾人补贴怎么申请</button>
+        <button class="quick-btn" onclick="sendQuick(this)">适合肢残人士的远程工作</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div id="input-area">
+    <textarea
+      id="user-input"
+      placeholder="输入你的问题，按 Enter 发送，Shift+Enter 换行"
+      rows="1"
+      aria-label="输入问题"
+      aria-multiline="true"
+    ></textarea>
+    <button id="send-btn" onclick="sendMessage()" aria-label="发送消息">发送</button>
+  </div>
+</main>
+
+<script>
+  const API_URL = "/api/chat";
+  let history = [];
+  let autoSpeak = false;
+  let fontLevel = 0;
+  let isStreaming = false;
+
+  // ── 自动调整输入框高度 ──
+  const textarea = document.getElementById("user-input");
+  textarea.addEventListener("input", () => {
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(textarea.scrollHeight, 160) + "px";
+  });
+  textarea.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // ── 快捷问题 ──
+  function sendQuick(btn) {
+    document.getElementById("user-input").value = btn.textContent;
+    sendMessage();
+  }
+
+  // ── 发送消息 ──
+  async function sendMessage() {
+    if (isStreaming) return;
+    const input = document.getElementById("user-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    // 隐藏欢迎卡片
+    const welcome = document.getElementById("welcome");
+    if (welcome) welcome.remove();
+
+    appendMsg("user", text);
+    history.push({ role: "user", content: text });
+    input.value = "";
+    input.style.height = "auto";
+
+    setStatus("AI 正在思考…");
+    setLoading(true);
+
+    const aiDiv = appendMsg("ai", "");
+    const bubble = aiDiv.querySelector(".bubble");
+    bubble.classList.add("cursor");
+
+    try {
+      const resp = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
+      });
+
+      if (!resp.ok) throw new Error(`服务器错误 ${resp.status}`);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // SSE 格式：data: ...\n\n
+        for (const line of chunk.split("\n")) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") break;
+            try {
+              const token = JSON.parse(data).token;
+              if (token) {
+                fullText += token;
+                bubble.innerHTML = marked.parse(fullText);
+                scrollToBottom();
+              }
+            } catch {}
+          }
+        }
+      }
+
+      // 流式结束后一次性渲染完整 Markdown
+      bubble.classList.remove("cursor");
+      bubble.innerHTML = marked.parse(fullText);
+      history.push({ role: "assistant", content: fullText });
+
+      // 朗读按钮（插在标签行，气泡上方）
+      const speakBtn = document.createElement("button");
+      speakBtn.className = "speak-btn";
+      speakBtn.textContent = "🔊 朗读";
+      speakBtn.setAttribute("aria-label", "朗读此回复");
+      speakBtn.onclick = () => speak(fullText);
+      const label = aiDiv.querySelector(".msg-label");
+      label.appendChild(speakBtn);
+
+      if (autoSpeak) speak(fullText);
+      setStatus("");
+    } catch (err) {
+      bubble.classList.remove("cursor");
+      bubble.innerHTML = "⚠️ 连接失败，请确认后端服务已启动（<code>python server.py</code>）";
+      setStatus("");
+    }
+
+    setLoading(false);
+  }
+
+  // ── 追加消息 ──
+  function appendMsg(role, text) {
+    const log = document.getElementById("chat-log");
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+    div.setAttribute("role", "article");
+
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = role === "user" ? "你" : "AI 助手";
+    label.setAttribute("aria-hidden", "true");
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = marked.parse(text || "");
+
+    div.appendChild(label);
+    div.appendChild(bubble);
+    log.appendChild(div);
+    scrollToBottom();
+    return div;
+  }
+
+  function scrollToBottom() {
+    const log = document.getElementById("chat-log");
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function setLoading(on) {
+    isStreaming = on;
+    document.getElementById("send-btn").disabled = on;
+  }
+
+  function setStatus(msg) {
+    document.getElementById("status").textContent = msg;
+  }
+
+  // ── 朗读 ──
+  function stripMarkdown(text) {
+    return text
+      .replace(/#{1,6}\s+/g, "")          // # 标题
+      .replace(/\*\*(.+?)\*\*/g, "$1")    // **粗体**
+      .replace(/\*(.+?)\*/g, "$1")        // *斜体*
+      .replace(/`{1,3}[^`]*`{1,3}/g, "") // `代码`
+      .replace(/\[(.+?)\]\(.+?\)/g, "$1") // [链接](url)
+      .replace(/^[-*+]\s+/gm, "")        // 无序列表符号
+      .replace(/^\d+\.\s+/gm, "")        // 有序列表符号
+      .replace(/^>\s+/gm, "")            // 引用 >
+      .replace(/[-]{3,}/g, "")           // 分割线 ---
+      .replace(/\n{2,}/g, "\n")          // 多余空行
+      .trim();
+  }
+
+  let _audioCtx = null;
+  let _audioSource = null;
+  let _fetchAbort = null;  // AbortController for in-flight TTS request
+
+  function speak(text) {
+    stopSpeak();  // 先停掉一切
+    const clean = stripMarkdown(text).trim();
+    if (!clean) return;
+
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === "suspended") _audioCtx.resume();
+
+    _fetchAbort = new AbortController();
+    const signal = _fetchAbort.signal;
+
+    fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: clean }),
+      signal
+    })
+    .then(r => {
+      if (!r.ok) throw new Error("tts failed");
+      return r.arrayBuffer();
+    })
+    .then(buf => {
+      if (signal.aborted) return;
+      return _audioCtx.decodeAudioData(buf);
+    })
+    .then(decoded => {
+      if (!decoded || signal.aborted) return;
+      const src = _audioCtx.createBufferSource();
+      src.buffer = decoded;
+      src.connect(_audioCtx.destination);
+      src.onended = () => { if (_audioSource === src) _audioSource = null; };
+      _audioSource = src;
+      src.start(0);
+    })
+    .catch(err => { if (err.name !== "AbortError") console.warn("TTS error:", err); });
+  }
+
+  function toggleAutoSpeak() {
+    stopSpeak();
+    autoSpeak = !autoSpeak;
+    const btn = document.getElementById("btn-speak-toggle");
+    btn.textContent = autoSpeak ? "🔊 朗读" : "🔇 朗读";
+    btn.setAttribute("aria-pressed", autoSpeak);
+  }
+
+  // ── 高对比度 ──
+  function toggleContrast() {
+    document.body.classList.toggle("high-contrast");
+    const on = document.body.classList.contains("high-contrast");
+    document.getElementById("btn-contrast").setAttribute("aria-pressed", on);
+  }
+
+  function stopSpeak() {
+    if (_fetchAbort) { _fetchAbort.abort(); _fetchAbort = null; }
+    if (_audioSource) { try { _audioSource.stop(); } catch(e){} _audioSource = null; }
+  }
+
+  // ── 字体大小循环 ──
+  function cycleFont() {
+    stopSpeak();
+    const levels = ["font-sm", "", "font-lg", "font-xl"];
+    const labels = ["小", "默认", "大", "超大"];
+    const html = document.documentElement;
+    html.classList.remove("font-sm", "font-lg", "font-xl");
+    fontLevel = (fontLevel + 1) % levels.length;
+    if (levels[fontLevel]) html.classList.add(levels[fontLevel]);
+    document.getElementById("btn-font").textContent = `字${labels[fontLevel]}`;
+    document.getElementById("btn-font").setAttribute("aria-label", `字体：${labels[fontLevel]}，点击切换`);
+  }
+
+  // ── 清空对话 ──
+  function clearHistory() {
+    stopSpeak();
+    if (!confirm("确定清空所有对话记录？")) return;
+    history = [];
+    const log = document.getElementById("chat-log");
+    log.innerHTML = "";
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    setStatus("");
+  }
+
+  function toggleAbout() {
+    const modal = document.getElementById("about-modal");
+    const isOpen = modal.style.display === "flex";
+    modal.style.display = isOpen ? "none" : "flex";
+  }
+
+  // ── 访问量统计 ──
+  (async () => {
+    try {
+      const d = await (await fetch("/api/stats")).json();
+      document.getElementById("visit-stats").textContent =
+        `访问量：${d.pv}`;
+    } catch {}
+  })();
+
+  // ── 知识库面板 ──
+  let kbData = [];
+
+  async function loadKB() {
+    stopSpeak();
+    document.getElementById("kb-list").innerHTML = "<p style='color:var(--text-muted);font-size:0.9rem;'>加载中…</p>";
+    try {
+      const resp = await fetch("/api/kb");
+      const data = await resp.json();
+      kbData = Array.isArray(data) ? data : (data.entries || []);
+      renderKB(kbData);
+    } catch {
+      document.getElementById("kb-list").innerHTML = "<p style='color:red;font-size:0.9rem;'>⚠️ 无法连接后端，请确认服务已启动</p>";
+    }
+  }
+
+  async function toggleKBPanel() {
+    const panel = document.getElementById("kb-panel");
+    const isOpen = panel.style.display !== "none";
+    if (isOpen) {
+      panel.style.display = "none";
+      return;
+    }
+    panel.style.display = "block";
+    await loadKB();
+  }
+
+  function renderKB(entries) {
+    const list = document.getElementById("kb-list");
+    if (!entries.length) {
+      list.innerHTML = "<p style='color:var(--text-muted);font-size:0.9rem;'>知识库暂无条目，运行 collector.py 可自动收集。</p>";
+      return;
+    }
+    // 每条目保留原始索引（用于 askAboutKB），然后按时间倒序
+    const sorted = entries
+      .map((e, i) => ({ ...e, _origIdx: i }))
+      .sort((a, b) => (b.collected_at || "").localeCompare(a.collected_at || ""));
+
+    // 按分类分组，保持分类首次出现的顺序
+    const groups = {};
+    const order = [];
+    for (const e of sorted) {
+      const cat = e.category || "通用";
+      if (!groups[cat]) { groups[cat] = []; order.push(cat); }
+      groups[cat].push(e);
+    }
+
+    const cardHTML = e => `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:0.85rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <strong style="color:var(--primary);">${e.title}</strong>
+          ${e.collected_at ? `<span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${e.collected_at}</span>` : ""}
+        </div>
+        <p style="color:var(--text-muted);margin:6px 0 4px;">${e.summary}</p>
+        ${e.tips && e.tips.length ? `<ul style="padding-left:16px;color:var(--text);">${e.tips.map(t => `<li>${t}</li>`).join("")}</ul>` : ""}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:0.75rem;color:var(--text-muted);">适用：${e.target_group || "通用"}</span>
+            ${e.source_url
+              ? `<a href="${e.source_url}" target="_blank" rel="noopener noreferrer"
+                  style="font-size:0.75rem;color:var(--primary);text-decoration:underline;"
+                  title="${e.source_name || e.source_url}">📎 来源</a>`
+              : e.source_name === "用户问答沉淀"
+                ? `<span style="font-size:0.75rem;color:#888;" title="来自：${e.source_question || '用户提问'}">💬 问答沉淀</span>`
+                : `<span style="font-size:0.75rem;color:#aaa;">无来源</span>`
+            }
+          </div>
+          <button onclick="askAboutKB(${e._origIdx})" style="
+            background:var(--primary);color:#fff;border:none;border-radius:6px;
+            padding:4px 10px;cursor:pointer;font-size:0.8rem;font-family:var(--font);
+          ">💬 问这个</button>
+        </div>
+      </div>`;
+
+    list.innerHTML = order.map(cat => `
+      <details style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <summary style="cursor:pointer;font-weight:600;color:var(--primary);font-size:0.85rem;
+          padding:8px 12px;background:var(--ai-bubble);list-style:none;display:flex;
+          justify-content:space-between;align-items:center;">
+          <span>${cat}</span>
+          <span style="font-weight:400;color:var(--text-muted);">${groups[cat].length} 条</span>
+        </summary>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:10px;">
+          ${groups[cat].map(cardHTML).join("")}
+        </div>
+      </details>
+    `).join("");
+  }
+
+  function filterKB(q) {
+    const lower = q.toLowerCase();
+    const filtered = kbData.filter(e =>
+      e.title.toLowerCase().includes(lower) ||
+      e.summary.toLowerCase().includes(lower) ||
+      (e.category || "").toLowerCase().includes(lower)
+    );
+    renderKB(filtered);
+  }
+
+  function askAboutKB(idx) {
+    const e = kbData[idx];
+    if (!e) return;
+    document.getElementById("kb-panel").style.display = "none";
+
+    // 构建富上下文 prompt
+    const lines = [];
+    lines.push(`我在知识库里看到一条关于「${e.title}」的内容：`);
+    if (e.summary) lines.push(`\n摘要：${e.summary}`);
+    if (e.target_group && e.target_group !== "通用") lines.push(`适用人群：${e.target_group}`);
+    if (e.tips && e.tips.length) {
+      lines.push(`\n已有建议：`);
+      e.tips.forEach((t, i) => lines.push(`${i + 1}. ${t}`));
+    }
+    lines.push(`\n请结合以上内容，给我更详细、可操作的实用建议，尤其是具体步骤或注意事项。`);
+
+    document.getElementById("user-input").value = lines.join("\n");
+    sendMessage();
+  }
+
+  // ── 访问量地图 ──
+  let mapChart = null;
+
+  async function toggleMapModal() {
+    const modal = document.getElementById("map-modal");
+    const isOpen = modal.style.display === "flex";
+    if (isOpen) { modal.style.display = "none"; return; }
+    modal.style.display = "flex";
+    if (!mapChart) {
+      mapChart = echarts.init(document.getElementById("map-chart"));
+    }
+    mapChart.showLoading();
+    try {
+      const [geoResp, worldJson] = await Promise.all([
+        fetch("/api/geo-stats").then(r => r.json()),
+        fetch("https://cdn.jsdelivr.net/npm/echarts@5/map/json/world.json").then(r => r.json())
+      ]);
+      echarts.registerMap("world", worldJson);
+      mapChart.hideLoading();
+      mapChart.setOption({
+        backgroundColor: "transparent",
+        tooltip: { trigger: "item", formatter: p => p.name + "：" + (p.value || 0) + " 次" },
+        visualMap: {
+          min: 0, max: Math.max(...(geoResp.data.map(d => d.value)), 1),
+          left: "left", bottom: 20, text: ["多", "少"],
+          inRange: { color: ["#d0e8ff", "#1a5c9a"] },
+          textStyle: { color: "var(--text)" }
+        },
+        series: [{
+          type: "map", map: "world", roam: true,
+          emphasis: { label: { show: true }, itemStyle: { areaColor: "#f5a623" } },
+          data: geoResp.data
+        }]
+      });
+    } catch {
+      mapChart.hideLoading();
+    }
+  }
+</script>
+</body>
+</html>
